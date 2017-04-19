@@ -88,6 +88,43 @@
 
         </li>
 
+        <li>
+
+            <span class="apidocSignatureSpan">object <span class="apidocSignatureSpan">password-hash.</span>password_hash</span>
+
+        </li>
+
+    </ol></li>
+
+    <li class="apidocModuleLi"><a href="#apidoc.module.password-hash.password_hash">module password-hash.password_hash</a><ol>
+
+        <li>
+
+            <a class="apidocElementLiA" href="#apidoc.element.password-hash.password_hash.generate">
+            function <span class="apidocSignatureSpan">password-hash.password_hash.</span>generate
+            <span class="apidocSignatureSpan">(password, options)</span>
+            </a>
+
+        </li>
+
+        <li>
+
+            <a class="apidocElementLiA" href="#apidoc.element.password-hash.password_hash.isHashed">
+            function <span class="apidocSignatureSpan">password-hash.password_hash.</span>isHashed
+            <span class="apidocSignatureSpan">(password)</span>
+            </a>
+
+        </li>
+
+        <li>
+
+            <a class="apidocElementLiA" href="#apidoc.element.password-hash.password_hash.verify">
+            function <span class="apidocSignatureSpan">password-hash.password_hash.</span>verify
+            <span class="apidocSignatureSpan">(password, hashedPassword)</span>
+            </a>
+
+        </li>
+
     </ol></li>
 
 </ol></div>
@@ -170,6 +207,121 @@ supports `crypto.randomBytes` it is used to generate the salt, otherwise `Math.r
     <h2>
         <a href="#apidoc.element.password-hash.verify" id="apidoc.element.password-hash.verify">
         function <span class="apidocSignatureSpan">password-hash.</span>verify
+        <span class="apidocSignatureSpan">(password, hashedPassword)</span>
+        </a>
+    </h2>
+    <ul>
+    <li>description and source-code<pre class="apidocCodePre">verify = function (password, hashedPassword) {
+  if (!password || !hashedPassword) return false;
+  hashedPassword = makeBackwardCompatible(hashedPassword);
+  var parts = hashedPassword.split(&#x27;$&#x27;);
+  if (parts.length != 4) return false;
+  try {
+    return generateHash(parts[0], parts[1], password, parts[2]) == hashedPassword;
+  } catch (e) {}
+  return false;
+}</pre></li>
+    <li>example usage<pre class="apidocCodePre">...
+
+Example:
+&#x3c;pre&#x3e;
+    var passwordHash = require(&#x27;./lib/password-hash&#x27;);
+
+    var hashedPassword = &#x27;sha1$3I7HRwy7$cbfdac6008f9cab4083784cbd1874f76618d2a97&#x27;;
+
+    console.log(passwordHash.<span class="apidocCodeKeywordSpan">verify</span>(&#x27;password123&#x27;, hashedPassword)); // true
+    console.log(passwordHash.verify(&#x27;Password0&#x27;, hashedPassword)); // false
+&#x3c;/pre&#x3e;
+
+### isHashed(password)
+
+Check if a password (`password`) is hashed.  Returns a boolean.
+...</pre></li>
+    </ul>
+
+
+
+
+</div>
+
+<div class="apidocSectionDiv">
+<h1><a href="#apidoc.module.password-hash.password_hash" id="apidoc.module.password-hash.password_hash">module password-hash.password_hash</a></h1>
+
+
+    <h2>
+        <a href="#apidoc.element.password-hash.password_hash.generate" id="apidoc.element.password-hash.password_hash.generate">
+        function <span class="apidocSignatureSpan">password-hash.password_hash.</span>generate
+        <span class="apidocSignatureSpan">(password, options)</span>
+        </a>
+    </h2>
+    <ul>
+    <li>description and source-code<pre class="apidocCodePre">generate = function (password, options) {
+  if (typeof password != &#x27;string&#x27;) throw new Error(&#x27;Invalid password&#x27;);
+  options || (options = {});
+  options.algorithm || (options.algorithm = &#x27;sha1&#x27;);
+  options.saltLength || options.saltLength == 0 || (options.saltLength = 8);
+  options.iterations || (options.iterations = 1);
+  var salt = generateSalt(options.saltLength);
+  return generateHash(options.algorithm, salt, password, options.iterations);
+}</pre></li>
+    <li>example usage<pre class="apidocCodePre">...
+
+The hashed password will be in the format `algorithm$salt$hash`.
+
+Example:
+&#x3c;pre&#x3e;
+    var passwordHash = require(&#x27;password-hash&#x27;);
+
+    var hashedPassword = passwordHash.<span class="apidocCodeKeywordSpan">generate</span>(&#x27;password123&#x27;);
+
+    console.log(hashedPassword); // sha1$3I7HRwy7$cbfdac6008f9cab4083784cbd1874f76618d2a97
+&#x3c;/pre&#x3e;
+
+### verify(password, hashedPassword)
+
+Compares a plain-text password (`password`) to a hashed password (`hashedPassword`) and returns a boolean.  Both arguments are required
+.
+...</pre></li>
+    </ul>
+
+
+
+    <h2>
+        <a href="#apidoc.element.password-hash.password_hash.isHashed" id="apidoc.element.password-hash.password_hash.isHashed">
+        function <span class="apidocSignatureSpan">password-hash.password_hash.</span>isHashed
+        <span class="apidocSignatureSpan">(password)</span>
+        </a>
+    </h2>
+    <ul>
+    <li>description and source-code<pre class="apidocCodePre">isHashed = function (password) {
+  if (!password) return false;
+  return password.split(&#x27;$&#x27;).length == 4;
+}</pre></li>
+    <li>example usage<pre class="apidocCodePre">...
+
+Example:
+&#x3c;pre&#x3e;
+    var passwordHash = require(&#x27;./lib/password-hash&#x27;);
+
+    var hashedPassword = &#x27;sha1$3I7HRwy7$cbfdac6008f9cab4083784cbd1874f76618d2a97&#x27;;
+
+    console.log(passwordHash.<span class="apidocCodeKeywordSpan">isHashed</span>(&#x27;password123&#x27;)); // false
+    console.log(passwordHash.isHashed(hashedPassword)); // true
+&#x3c;/pre&#x3e;
+
+## Salt Generation
+
+node 0.5.8 introduced `crypto.randomBytes`, which generates cryptographically strong pseudo-random data. If the version of node
+supports `crypto.randomBytes` it is used to generate the salt, otherwise `Math.random`, which is not cryptographically strong, is
+ used. This is handled transparently within the salt generation function and does not impact the module&#x27;s API.
+...</pre></li>
+    </ul>
+
+
+
+    <h2>
+        <a href="#apidoc.element.password-hash.password_hash.verify" id="apidoc.element.password-hash.password_hash.verify">
+        function <span class="apidocSignatureSpan">password-hash.password_hash.</span>verify
         <span class="apidocSignatureSpan">(password, hashedPassword)</span>
         </a>
     </h2>
